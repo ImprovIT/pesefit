@@ -119,9 +119,8 @@ public class UserDataManager
         Cursor c = db.rawQuery("SELECT * FROM "+ UserDataContract.UserDataEntry.TABLE_NAME
                 + " WHERE "
                 + UserDataContract.UserDataEntry.COLUMN_NAME_DATE
-                + " >= " + beginDate + " AND "
-                + UserDataContract.UserDataEntry.COLUMN_NAME_DATE
-                + " <= " + endDate
+                + " BETWEEN " + beginDate + " AND "
+                + endDate
                 , null);
 
         List<UserData> listUserData = new ArrayList<UserData>();

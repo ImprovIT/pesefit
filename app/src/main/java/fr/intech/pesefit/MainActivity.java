@@ -17,7 +17,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -91,7 +93,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _userDataManager.open();
         List<UserData> listUserData = new ArrayList<UserData>();
 
-        listUserData = _userDataManager.getUserDataByHour(new Date().getTime() - 3*60*60*1000, new Date().getTime());
+        Calendar beginCalendar = Calendar.getInstance();
+        beginCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        beginCalendar.set(Calendar.MINUTE, 0);
+        beginCalendar.set(Calendar.SECOND, 0);
+
+        Calendar endCalendar = Calendar.getInstance();
+        endCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        endCalendar.set(Calendar.MINUTE, 59);
+        endCalendar.set(Calendar.SECOND, 59);
+
+        /*
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy MMM dd HH:mm:ss");
+        System.out.println("beginDate : " + sdf.format(beginCalendar.getTime()));
+        System.out.println("endDate : " + sdf.format(endCalendar.getTime()));
+        */
+
+        listUserData = _userDataManager.getUserDataByHour(beginCalendar.getTime().getTime(), endCalendar.getTime().getTime());
 
         for ( UserData userData : listUserData ) {
             userData.getDate();
