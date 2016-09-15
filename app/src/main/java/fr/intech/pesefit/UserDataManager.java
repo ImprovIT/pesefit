@@ -5,6 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Alexandre on 15/09/2016.
  */
@@ -23,24 +26,29 @@ public class UserDataManager
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " +  UserDataContract.UserDataEntry.TABLE_NAME;
 
-    private UserDataDbHelper userDataDbHelper; // notre gestionnaire du fichier SQLite
+    private UserDataDbHelper userDataDbHelper;
     private SQLiteDatabase db;
 
-    // Constructeur
+    // Constructor
     public UserDataManager(Context context)
     {
         userDataDbHelper = UserDataDbHelper.getInstance(context);
     }
 
+    /**
+     * Open database in read/write mode
+     */
     public void open()
     {
-        // Gets the data repository in write/read mode
         db = userDataDbHelper.getWritableDatabase();
     }
 
+    /**
+     * close BDD
+     */
     public void close()
     {
-        //close BDD
+
         db.close();
     }
 
@@ -106,8 +114,29 @@ public class UserDataManager
      * Return all user Data
      * @return all user Data
      */
-    public Cursor getAllUserData() {
-        return db.rawQuery("SELECT * FROM "+ UserDataContract.UserDataEntry.TABLE_NAME, null);
+    public List<UserData> getUserDataByHour(long beginDate, long endDate) {
+
+        Cursor c = db.rawQuery("SELECT * FROM "+ UserDataContract.UserDataEntry.TABLE_NAME
+                + " WHERE "
+                + UserDataContract.UserDataEntry.COLUMN_NAME_DATE
+                + " >= " + beginDate + " AND "
+                + UserDataContract.UserDataEntry.COLUMN_NAME_DATE
+                + " <= " + endDate
+                , null);
+
+        List<UserData> listUserData = new ArrayList<UserData>();
+
+        while(c.moveToNext()){
+            UserData userDataToAdd = new UserData();
+            userDataToAdd.setId(c.getInt(c.getColumnIndex(UserDataContract.UserDataEntry._ID)));
+            userDataToAdd.setDate(c.getLong(c.getColumnIndex(UserDataContract.UserDataEntry.COLUMN_NAME_DATE)));
+            userDataToAdd.setDuration(c.getLong(c.getColumnIndex(UserDataContract.UserDataEntry.COLUMN_NAME_DURATION)));
+            userDataToAdd.setActivity(c.getInt(c.getColumnIndex(UserDataContract.UserDataEntry.COLUMN_NAME_ACTIVITY)));
+            listUserData.add(userDataToAdd);
+        }
+
+        return listUserData;
+
     }
 
 

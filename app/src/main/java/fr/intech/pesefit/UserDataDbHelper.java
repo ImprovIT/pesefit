@@ -26,16 +26,11 @@ public class UserDataDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Création de la base de données
-        // on exécute ici les requêtes de création des tables
-        db.execSQL(UserDataManager.getSqlCreateEntries()); // création table "userData"
+        db.execSQL(UserDataManager.getSqlCreateEntries()); // create table "userData"
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Mise à jour de la base de données
-        // méthode appelée sur incrémentation de DATABASE_VERSION
-        // on peut faire ce qu'on veut ici, comme recréer la base :
         db.execSQL(UserDataManager.getSqlDeleteEntries());
         onCreate(db);
     }

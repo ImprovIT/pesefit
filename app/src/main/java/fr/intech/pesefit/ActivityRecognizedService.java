@@ -21,13 +21,20 @@ import java.util.List;
  */
 public class ActivityRecognizedService extends IntentService {
 
+    //Interval for update when same activity
+    private static final int INTERVAL = 2;
+
     private int _currentState;
-    private int _previousState;
+    private static int _previousState;
+
+    private static boolean _started = false;
+
     private UserDataManager _userDataManager;
 
 
     public ActivityRecognizedService() {
         super("ActivityRecognizedService");
+        _userDataManager= new UserDataManager(this);
     }
 
     public ActivityRecognizedService(String name) {
@@ -86,7 +93,7 @@ public class ActivityRecognizedService extends IntentService {
 */
         _currentState = activity.getType();
 
-        _userDataManager= new UserDataManager(this); // gestionnaire de la table "userData"
+/*        _userDataManager= new UserDataManager(this);
         _userDataManager.open();
 
         long value = _userDataManager.addUserData(new UserData(time,time, activity.getType()));
@@ -111,18 +118,42 @@ public class ActivityRecognizedService extends IntentService {
         Log.d("Activité : ", String.valueOf(lastUserData.getActivity()));
 
         _userDataManager.close();
+*/
 
-        if (_previousState != _currentState)
-        {
-            // Nouvelle ligne en bdd et mettre à jour la dernière
+        if(_started) {
+            if (_previousState != _currentState) {
+                // Nouvelle ligne en bdd et mettre à jour la dernière
+                _userDataManager.open();
+
+                UserData lastUserData = _userDataManager.getLastUserData();
+
+                lastUserData.setDuration( time - lastUserData.getDate());
+                _userDataManager.updateUserData(lastUserData);
+
+                _userDataManager.addUserData(new UserData( time, 0, _currentState) );
+
+                _userDataManager.close();
+
+            } else {
+                // On check la date dans la dernière ligne de la bdd.
+                // Si la current_date - date_bdd >= 2mn
+                _userDataManager.open();
+
+                UserData lastUserData = _userDataManager.getLastUserData();
+               if( (time - lastUserData.getDate() ) >= (INTERVAL * 60 * 1000) ){
+                   lastUserData.setDuration( time - lastUserData.getDate());
+                   _userDataManager.updateUserData(lastUserData);
+                   _userDataManager.close();
+                }
+
+            }
         }
-        else
-        {
-            // On check la date dans la dernière ligne de la bdd.
-            // Si la current_date - date_bdd >= 2mn
+        else{
+            _userDataManager.open();
+            _userDataManager.addUserData(new UserData( time, 0, _currentState) );
+            _userDataManager.close();
+            _started = true;
         }
-
-
 
         _previousState = _currentState;
     }

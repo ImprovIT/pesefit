@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.EditText;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.data.BarData;
@@ -15,12 +16,16 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
+
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleApiClient _apiClient;
+    private UserDataManager _userDataManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
 
         _apiClient.connect(); // call onConnected
+        test();
 
         // To make vertical bar chart, initialize graph id this way
         /*BarChart barChart = (BarChart) findViewById(R.id.chart);
@@ -58,6 +64,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        test();
+    }
+
+    @Override
     public void onConnected(@Nullable Bundle bundle) {
         Intent intent = new Intent( this, ActivityRecognizedService.class );
         PendingIntent pendingIntent = PendingIntent.getService( this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT );
@@ -72,5 +84,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    public void test() {
+        _userDataManager= new UserDataManager(this);
+        _userDataManager.open();
+        List<UserData> listUserData = new ArrayList<UserData>();
+
+        listUserData = _userDataManager.getUserDataByHour(new Date().getTime() - 3*60*60*1000, new Date().getTime());
+
+        for ( UserData userData : listUserData ) {
+            userData.getDate();
+            userData.getDuration();
+            userData.getActivity();
+        }
+
+        _userDataManager.close();
+
+        //UserData lastUserData = _userDataManager.getLastUserData();
+
+        /*EditText text = (EditText) findViewById(R.id.text47);
+        text.setText(String.valueOf(lastUserData.getDate()) + " " +
+                String.valueOf(lastUserData.getDuration()) +" "
+                + String.valueOf(lastUserData.getActivity()));
+                */
     }
 }
