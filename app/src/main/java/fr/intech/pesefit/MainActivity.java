@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.EditText;
 
@@ -16,6 +17,7 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.DetectedActivity;
 
 
 import java.text.SimpleDateFormat;
@@ -112,24 +114,47 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         listUserData = _userDataManager.getUserDataByHour(beginCalendar.getTime().getTime(), endCalendar.getTime().getTime());
 
+
+        String date = DateUtils.formatDateTime(getApplicationContext(),listUserData.get(0).getDate(), DateUtils.FORMAT_SHOW_DATE);
         for ( UserData userData : listUserData ) {
-            Log.e("Date : ", String.valueOf(userData.getDate()));
-            Log.e("Durée : ", String.valueOf(userData.getDuration()));
-            Log.e("Activité : ", String.valueOf(userData.getActivity()));
+            String formattedDate = DateUtils.formatDateTime(getApplicationContext(),
+                    userData.getDate(), DateUtils.FORMAT_SHOW_TIME);
+            String duration = String.valueOf(userData.getDuration() / 1000 / 60) + "min";
+            String activity = activityMapping(userData.getActivity());
+
+            Log.e("Date : ", formattedDate);
+            Log.e("Durée : ", duration);
+            Log.e("Activité : ", activity);
         }
-
-
-
-
 
         _userDataManager.close();
 
-        //UserData lastUserData = _userDataManager.getLastUserData();
-
-        /*EditText text = (EditText) findViewById(R.id.text47);
-        text.setText(String.valueOf(lastUserData.getDate()) + " " +
-                String.valueOf(lastUserData.getDuration()) +" "
-                + String.valueOf(lastUserData.getActivity()));
-                */
     }
+
+    String activityMapping(int activity)
+    {
+        switch(activity)
+        {
+            case DetectedActivity.IN_VEHICLE: {
+                return "Véhicule";
+            }
+            case DetectedActivity.ON_BICYCLE: {
+                return "Vélo";
+            }
+            case DetectedActivity.RUNNING: {
+                return "Course";
+            }
+            case DetectedActivity.STILL: {
+                return "Glandage";
+            }
+            case DetectedActivity.WALKING: {
+                return "Marche";
+            }
+            default: {
+                // Should throw an exception
+                return "";
+            }
+        }
+    }
+
 }

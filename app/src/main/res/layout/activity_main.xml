@@ -9,14 +9,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="fr.intech.pesefit.MainActivity">
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:layout_alignParentStart="false"
-        android:id="@+id/text47" />
-
-    <com.github.mikephil.charting.charts.BarChart
+    <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/chart"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
