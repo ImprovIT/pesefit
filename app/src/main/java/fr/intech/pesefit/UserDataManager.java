@@ -70,7 +70,7 @@ public class UserDataManager
         Cursor c = db.rawQuery(
                 "SELECT * FROM "
                 + UserDataContract.UserDataEntry.TABLE_NAME
-                + " ORDER BY ID DESC LIMIT 1", null);
+                + " ORDER BY " + UserDataContract.UserDataEntry._ID  + " DESC LIMIT 1", null);
 
 
         if (c.moveToFirst()) {

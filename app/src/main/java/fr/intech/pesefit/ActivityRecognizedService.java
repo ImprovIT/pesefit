@@ -23,6 +23,7 @@ public class ActivityRecognizedService extends IntentService {
 
     private int _currentState;
     private int _previousState;
+    private UserDataManager _userDataManager;
 
 
     public ActivityRecognizedService() {
@@ -40,31 +41,20 @@ public class ActivityRecognizedService extends IntentService {
         if ( ActivityRecognitionResult.hasResult( intent ) )
         {
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
-            //DetectedActivity detectedActivity = result.getMostProbableActivity();
-            //Log.d("Activité", String.valueOf(detectedActivity.getType()));
-/*            if(detectedActivity.getType() == DetectedActivity.STILL){
-                Log.d("Activité : ", "IMMOBILE");
-            }
-            if(detectedActivity.getType() == DetectedActivity.WALKING){
-                Log.d("Activité : ", "IMMOBILE");
-            }*/
-            long time = result.getTime();
 
           /*  String formattedDate = DateUtils.formatDateTime(getApplicationContext(),
                     time, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_YEAR);
             Log.d("Time", formattedDate);
           */
 
-            handleDetectedActivity(result.getMostProbableActivity(), time);
-
-
+            handleDetectedActivity(result.getMostProbableActivity(), result.getTime());
 
         }
     }
 
     private void handleDetectedActivity(DetectedActivity activity, long time)
     {
-            switch( activity.getType() )
+            /*switch( activity.getType() )
             {
                 case DetectedActivity.IN_VEHICLE: {
                     Log.d( "ActivityRecogition", "In Vehicle: " + activity.getConfidence() );
@@ -93,8 +83,34 @@ public class ActivityRecognizedService extends IntentService {
                     break;
                 }
             }
-
+*/
         _currentState = activity.getType();
+
+        _userDataManager= new UserDataManager(this); // gestionnaire de la table "userData"
+        _userDataManager.open();
+
+        long value = _userDataManager.addUserData(new UserData(time,time, activity.getType()));
+        Log.d("Value after insert : ", String.valueOf(value));
+
+        long value2 = _userDataManager.addUserData(new UserData(time,55555, activity.getType()));
+        Log.d("Value after insert : ", String.valueOf(value2));
+
+        UserData lastUserData = _userDataManager.getLastUserData();
+        Log.d("Date : ", String.valueOf(lastUserData.getDate()));
+        Log.d("Durée : ", String.valueOf(lastUserData.getDuration()));
+        Log.d("Activité : ", String.valueOf(lastUserData.getActivity()));
+
+        lastUserData.setDuration(88888);
+
+        int valueUpdate = _userDataManager.updateUserData(lastUserData);
+        Log.d("Value after update : ", String.valueOf(valueUpdate));
+
+        lastUserData = _userDataManager.getLastUserData();
+        Log.d("Date : ", String.valueOf(lastUserData.getDate()));
+        Log.d("Durée : ", String.valueOf(lastUserData.getDuration()));
+        Log.d("Activité : ", String.valueOf(lastUserData.getActivity()));
+
+        _userDataManager.close();
 
         if (_previousState != _currentState)
         {
