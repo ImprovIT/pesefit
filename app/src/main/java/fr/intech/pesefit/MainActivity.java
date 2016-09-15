@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.EditText;
 
 import com.github.mikephil.charting.charts.BarChart;
@@ -112,10 +113,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         listUserData = _userDataManager.getUserDataByHour(beginCalendar.getTime().getTime(), endCalendar.getTime().getTime());
 
         for ( UserData userData : listUserData ) {
-            userData.getDate();
-            userData.getDuration();
-            userData.getActivity();
+            Log.e("Date : ", String.valueOf(userData.getDate()));
+            Log.e("Durée : ", String.valueOf(userData.getDuration()));
+            Log.e("Activité : ", String.valueOf(userData.getActivity()));
         }
+
+
+
+
 
         _userDataManager.close();
 

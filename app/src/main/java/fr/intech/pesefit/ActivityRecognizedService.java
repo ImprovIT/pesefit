@@ -121,8 +121,14 @@ public class ActivityRecognizedService extends IntentService {
 */
 
         if(_started) {
+
+            if(_currentState == DetectedActivity.UNKNOWN || _currentState == DetectedActivity.ON_FOOT || _currentState == DetectedActivity.TILTING)
+            {
+                _currentState = _previousState;
+            }
+
             if (_previousState != _currentState) {
-                // Nouvelle ligne en bdd et mettre à jour la dernière
+                // Update last db input and add new input
                 _userDataManager.open();
 
                 UserData lastUserData = _userDataManager.getLastUserData();
@@ -135,8 +141,8 @@ public class ActivityRecognizedService extends IntentService {
                 _userDataManager.close();
 
             } else {
-                // On check la date dans la dernière ligne de la bdd.
-                // Si la current_date - date_bdd >= 2mn
+                // Check date on db last line
+                // If current_date - db_date >= 2mn update the last db line
                 _userDataManager.open();
 
                 UserData lastUserData = _userDataManager.getLastUserData();
