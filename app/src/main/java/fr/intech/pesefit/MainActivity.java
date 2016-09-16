@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
@@ -85,9 +86,26 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
      * Retrieve data from database, arrange it and display it with a graphe
      */
     public void displayData() {
+
+
+
+
+
+
         _userDataManager= new UserDataManager(this);
         _userDataManager.open();
         List<UserData> listUserData = new ArrayList<UserData>();
+
+
+        UserData userDataActivity = _userDataManager.getLastUserData();
+        if (userDataActivity != null) {
+
+        // Display current activity as text
+        TextView currentActivity = (TextView)findViewById(R.id.currentActivity);
+        currentActivity.setText("En " + activityNameMapping(userDataActivity.getActivity()));
+
+        }
+
 
         Calendar beginCalendar = Calendar.getInstance();
         beginCalendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -131,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Collections.sort(entries, new EntryXComparator());
 
             // add entries to dataset
-            LineDataSet dataSet = new LineDataSet(entries, "");
+            LineDataSet dataSet = new LineDataSet(entries, "Time Line");
 
 
             // Style
@@ -159,6 +177,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             String[] values = new String[]{"Glandage", "Marche", "Course", "Vélo", "Véhicule"};
             yLeftAxis.setValueFormatter(new MyYAxisValueFormatter(values));
+
+
+            // Format X legend
+            //String[] xValues = new String[]{"00:00","1:00","2:00","3:00","4:00","5:00","6:00","7:00","8:00","9:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","21:00","22:00","23:00"};
+            //xAxis.setValueFormatter(new axisValueFormatter(xValues));
 
             chart.invalidate(); // refresh
         }
@@ -195,5 +218,35 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         }
     }
+
+
+
+    String activityNameMapping(int activity)
+    {
+        switch(activity)
+        {
+            case DetectedActivity.STILL: {
+                return "Glandage";
+            }
+            case DetectedActivity.WALKING: {
+                return "Marche";
+            }
+            case DetectedActivity.RUNNING: {
+                return "Course";
+            }
+            case DetectedActivity.ON_BICYCLE: {
+                return "Vélo";
+            }
+            case DetectedActivity.IN_VEHICLE: {
+                return "Véhicule";
+            }
+
+            default: {
+                // Should throws an exception
+                return "";
+            }
+        }
+    }
+
 
 }

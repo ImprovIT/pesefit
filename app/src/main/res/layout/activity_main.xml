@@ -12,7 +12,19 @@
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/chart"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/currentActivity"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Activity"
+        android:id="@+id/currentActivity"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:autoText="false"
+        />
 
 
 </RelativeLayout>
