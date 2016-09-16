@@ -107,67 +107,67 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         listUserData = _userDataManager.getUserDataByHour(beginCalendar.getTime().getTime(), endCalendar.getTime().getTime());
 
-
-        String date = DateUtils.formatDateTime(getApplicationContext(),listUserData.get(0).getDate(), DateUtils.FORMAT_SHOW_DATE);
-
-
         _userDataManager.close();
 
-        // LineChart is initialized from xml
-        LineChart chart = (LineChart) findViewById(R.id.chart);
+        if(!listUserData.isEmpty()) {
 
-        List<Entry> entries = new ArrayList<Entry>();
+            String date = DateUtils.formatDateTime(getApplicationContext(), listUserData.get(0).getDate(), DateUtils.FORMAT_SHOW_DATE);
 
-        for ( UserData userData : listUserData ) {
-            String formattedDate = DateUtils.formatDateTime(getApplicationContext(),
-                    userData.getDate(), DateUtils.FORMAT_SHOW_TIME);
-            int duration = (int) userData.getDuration() / 1000 / 60;
-            int activity = activityMapping(userData.getActivity());
+            // LineChart is initialized from xml
+            LineChart chart = (LineChart) findViewById(R.id.chart);
 
-            //Log.e("Date : ", formattedDate);
-            //Log.e("Durée : ", duration);
-            //Log.e("Activité : ", activity);
+            List<Entry> entries = new ArrayList<Entry>();
+
+            for (UserData userData : listUserData) {
+                String formattedDate = DateUtils.formatDateTime(getApplicationContext(),
+                        userData.getDate(), DateUtils.FORMAT_SHOW_TIME);
+                int duration = (int) userData.getDuration() / 1000 / 60;
+                int activity = activityMapping(userData.getActivity());
+
+                //Log.e("Date : ", formattedDate);
+                //Log.e("Durée : ", duration);
+                //Log.e("Activité : ", activity);
 
 
-        // turn data into Entry objects
-            entries.add(new Entry(duration, activity));
+                // turn data into Entry objects
+                entries.add(new Entry(duration, activity));
+            }
+
+            //Entries need to be added to a DataSet sorted by their x-position
+            Collections.sort(entries, new EntryXComparator());
+
+            // add entries to dataset
+            LineDataSet dataSet = new LineDataSet(entries, "Label");
+
+
+            // Style
+            dataSet.setColor(Color.BLUE);
+            dataSet.setValueTextColor(Color.BLACK);
+
+            LineData lineData = new LineData(dataSet);
+            chart.setData(lineData);
+            chart.setDescription(date);
+
+            YAxis yLeftAxis = chart.getAxisLeft();
+            yLeftAxis.setAxisMinValue(0f); // start at zero
+            yLeftAxis.setAxisMaxValue(4f); // the axis maximum is 100
+            yLeftAxis.setGranularity(1f); // interval 1
+
+            YAxis yRightAxis = chart.getAxisRight();
+            yRightAxis.setEnabled(false);
+
+            XAxis xAxis = chart.getXAxis();
+            xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+            xAxis.setGranularity(1 / 60f); // Try 1 || 60 || 1/60
+
+            // Format Y legend
+            // the labels that should be drawn on the YAxis
+
+            String[] values = new String[]{"Glandage", "Marche", "Running", "Vélo", "Véhicule"};
+            yLeftAxis.setValueFormatter(new MyYAxisValueFormatter(values));
+
+            chart.invalidate(); // refresh
         }
-
-        //Entries need to be added to a DataSet sorted by their x-position
-        Collections.sort(entries, new EntryXComparator());
-
-        // add entries to dataset
-        LineDataSet dataSet = new LineDataSet(entries, "Label");
-
-
-        // Style
-        dataSet.setColor(Color.BLUE);
-        dataSet.setValueTextColor(Color.BLACK);
-
-        LineData lineData = new LineData(dataSet);
-        chart.setData(lineData);
-        chart.setDescription(date);
-
-        YAxis yLeftAxis = chart.getAxisLeft();
-        yLeftAxis.setAxisMinValue(0f); // start at zero
-        yLeftAxis.setAxisMaxValue(4f); // the axis maximum is 100
-        yLeftAxis.setGranularity(1f); // interval 1
-
-        YAxis yRightAxis = chart.getAxisRight();
-        yRightAxis.setEnabled(false);
-
-        XAxis xAxis = chart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setGranularity(1/60f); // Try 1 || 60 || 1/60
-
-        // Format Y legend
-        // the labels that should be drawn on the YAxis
-
-        String[] values = new String[] { "Glandage", "Marche", "Running", "Vélo", "Véhicule" };
-        yLeftAxis.setValueFormatter(new MyYAxisValueFormatter(values));
-
-        chart.invalidate(); // refresh
-
     }
 
     /**
