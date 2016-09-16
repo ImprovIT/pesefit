@@ -2,6 +2,7 @@ package fr.intech.pesefit;
 
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -11,9 +12,17 @@ import android.util.Log;
 import android.widget.EditText;
 
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.utils.EntryXComparator;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
@@ -23,6 +32,7 @@ import com.google.android.gms.location.DetectedActivity;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -44,34 +54,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
 
         _apiClient.connect(); // call onConnected
-        test();
+        displayData();
 
-        // To make vertical bar chart, initialize graph id this way
-        /*BarChart barChart = (BarChart) findViewById(R.id.chart);
-
-        ArrayList<BarEntry> entries = new ArrayList<>();
-        entries.add(new BarEntry(4f, 0));
-        entries.add(new BarEntry(8f, 1));
-        entries.add(new BarEntry(6f, 2));
-        entries.add(new BarEntry(12f, 3));
-        entries.add(new BarEntry(18f, 4));
-        entries.add(new BarEntry(9f, 5));
-
-        BarDataSet dataSet = new BarDataSet(entries, "# of Calls");
-
-        BarChart chart = new BarChart(this);
-        setContentView(chart);
-
-        BarData data = new BarData(dataSet);
-        chart.setData(data);
-
-        chart.setDescription("# of times Alice called Bob");*/
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        test();
+        displayData();
     }
 
     @Override
@@ -91,7 +81,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
-    public void test() {
+    /**
+     * Retrieve data from database, work on it and display it with a graphe
+     */
+    public void displayData() {
         _userDataManager= new UserDataManager(this);
         _userDataManager.open();
         List<UserData> listUserData = new ArrayList<UserData>();
@@ -116,43 +109,95 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
         String date = DateUtils.formatDateTime(getApplicationContext(),listUserData.get(0).getDate(), DateUtils.FORMAT_SHOW_DATE);
-        for ( UserData userData : listUserData ) {
-            String formattedDate = DateUtils.formatDateTime(getApplicationContext(),
-                    userData.getDate(), DateUtils.FORMAT_SHOW_TIME);
-            String duration = String.valueOf(userData.getDuration() / 1000 / 60) + "min";
-            String activity = activityMapping(userData.getActivity());
 
-            Log.e("Date : ", formattedDate);
-            Log.e("Durée : ", duration);
-            Log.e("Activité : ", activity);
-        }
 
         _userDataManager.close();
 
+        // LineChart is initialized from xml
+        LineChart chart = (LineChart) findViewById(R.id.chart);
+
+        List<Entry> entries = new ArrayList<Entry>();
+
+        for ( UserData userData : listUserData ) {
+            String formattedDate = DateUtils.formatDateTime(getApplicationContext(),
+                    userData.getDate(), DateUtils.FORMAT_SHOW_TIME);
+            int duration = (int) userData.getDuration() / 1000 / 60;
+            int activity = activityMapping(userData.getActivity());
+
+            //Log.e("Date : ", formattedDate);
+            //Log.e("Durée : ", duration);
+            //Log.e("Activité : ", activity);
+
+
+        // turn data into Entry objects
+            entries.add(new Entry(duration, activity));
+        }
+
+        //Entries need to be added to a DataSet sorted by their x-position
+        Collections.sort(entries, new EntryXComparator());
+
+        // add entries to dataset
+        LineDataSet dataSet = new LineDataSet(entries, "Label");
+
+
+        // Style
+        dataSet.setColor(Color.BLUE);
+        dataSet.setValueTextColor(Color.BLACK);
+
+        LineData lineData = new LineData(dataSet);
+        chart.setData(lineData);
+        chart.setDescription(date);
+
+        YAxis yLeftAxis = chart.getAxisLeft();
+        yLeftAxis.setAxisMinValue(0f); // start at zero
+        yLeftAxis.setAxisMaxValue(4f); // the axis maximum is 100
+        yLeftAxis.setGranularity(1f); // interval 1
+
+        YAxis yRightAxis = chart.getAxisRight();
+        yRightAxis.setEnabled(false);
+
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setGranularity(1/60f); // Try 1 || 60 || 1/60
+
+        // Format Y legend
+        // the labels that should be drawn on the YAxis
+
+        String[] values = new String[] { "Glandage", "Marche", "Running", "Vélo", "Véhicule" };
+        yLeftAxis.setValueFormatter(new MyYAxisValueFormatter(values));
+
+        chart.invalidate(); // refresh
+
     }
 
-    String activityMapping(int activity)
+    /**
+     * Detect the activity from the return int from DetectedActivity
+     * @param activity
+     * @return activity
+     */
+    int activityMapping(int activity)
     {
         switch(activity)
         {
-            case DetectedActivity.IN_VEHICLE: {
-                return "Véhicule";
-            }
-            case DetectedActivity.ON_BICYCLE: {
-                return "Vélo";
-            }
-            case DetectedActivity.RUNNING: {
-                return "Course";
-            }
             case DetectedActivity.STILL: {
-                return "Glandage";
+                return 0;
             }
             case DetectedActivity.WALKING: {
-                return "Marche";
+                return 1;
             }
+            case DetectedActivity.RUNNING: {
+                return 2;
+            }
+            case DetectedActivity.ON_BICYCLE: {
+                return 3;
+            }
+            case DetectedActivity.IN_VEHICLE: {
+                return 4;
+            }
+
             default: {
-                // Should throw an exception
-                return "";
+                // Should throws an exception
+                return -1;
             }
         }
     }
