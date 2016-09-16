@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     /**
-     * Retrieve data from database, work on it and display it with a graphe
+     * Retrieve data from database, arrange it and display it with a graphe
      */
     public void displayData() {
         _userDataManager= new UserDataManager(this);
@@ -98,12 +98,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         endCalendar.set(Calendar.HOUR_OF_DAY, 23);
         endCalendar.set(Calendar.MINUTE, 59);
         endCalendar.set(Calendar.SECOND, 59);
-
-        /*
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy MMM dd HH:mm:ss");
-        System.out.println("beginDate : " + sdf.format(beginCalendar.getTime()));
-        System.out.println("endDate : " + sdf.format(endCalendar.getTime()));
-        */
 
         listUserData = _userDataManager.getUserDataByHour(beginCalendar.getTime().getTime(), endCalendar.getTime().getTime());
 
@@ -137,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Collections.sort(entries, new EntryXComparator());
 
             // add entries to dataset
-            LineDataSet dataSet = new LineDataSet(entries, "Label");
+            LineDataSet dataSet = new LineDataSet(entries, "");
 
 
             // Style
@@ -163,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             // Format Y legend
             // the labels that should be drawn on the YAxis
 
-            String[] values = new String[]{"Glandage", "Marche", "Running", "Vélo", "Véhicule"};
+            String[] values = new String[]{"Glandage", "Marche", "Course", "Vélo", "Véhicule"};
             yLeftAxis.setValueFormatter(new MyYAxisValueFormatter(values));
 
             chart.invalidate(); // refresh
